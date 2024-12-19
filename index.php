@@ -1,4 +1,8 @@
 <?php
+//postman
+//post to https://cahome.igears.com.hk/ai/
+//{"prompt":"what is ai"}
+
 // API Key and Model Initialization
 $apiKey = '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';
 $model = 'gpt-4o-mini';
