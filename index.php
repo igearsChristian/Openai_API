@@ -8,6 +8,7 @@
 //         {"role":"assistant", "content":"what is ai in one line"}
 //     ]
 // } 
+date_default_timezone_set('Asia/Shanghai');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get JSON data from the request body
@@ -35,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Extract content from each message
             $role = isset($msg['role']) ? $msg['role'] : null;
             $content = isset($msg['content']) ? $msg['content'] : null;
-            $output = "AI's Role: " . htmlspecialchars($role) . ", Content: " . htmlspecialchars($content);
-            echo $output . PHP_EOL; // Output the formatted string
+            echo "AI's Role: " . htmlspecialchars($role) . ", Content: " . htmlspecialchars($content);
+            echo $output . PHP_EOL; 
         }
 
     
@@ -70,8 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Construct the prompt
         echo "Prompt sent to open ai: " . $content . PHP_EOL;
-        echo "---------------------------------------" . PHP_EOL;
-        echo "AI's reply: " . PHP_EOL;
+
 
 
         // $prompt = "hello. tell me what is get http request in one line";
@@ -95,6 +95,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Decode the JSON response
             $decodedResponse = json_decode($response, true);
 
+            if (isset($decodedResponse['usage'])) {
+                // Extract usage data
+                $usage = $decodedResponse['usage'];
+                
+                // Store the usage information in variables
+                $promptTokens = htmlspecialchars($usage['prompt_tokens']);
+                $completionTokens = htmlspecialchars($usage['completion_tokens']);
+                $totalTokens = htmlspecialchars($usage['total_tokens']);
+                $currentDateTime = date('Y-m-d H:i:s');
+                
+                // The name of the text file
+                $filename = 'output.txt';
+                $put_to_txt_message = "[$currentDateTime usage]\tprompt_token: $promptTokens\tcompletion_tokens: \t$completionTokens\ttotal_tokens: \t$totalTokens\n";
+                // Write the message to the file
+                if (file_put_contents($filename, $put_to_txt_message, FILE_APPEND) !== false) {
+                    echo "Token Information successfully written to $filename." . PHP_EOL;
+                } else {
+                    echo "Failed to write to $filename.";
+                }
+            } else {
+                echo "No usage information found in the response.";
+            }
+
+                
+
             // Check if the response contains the expected structure
             if (!isset($decodedResponse['choices'][0]['message']['content'])) {
                 echo "No content found in the response.";
@@ -104,10 +129,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Close cURL session
         curl_close($ch);
 
+
+        echo "Response from OpenAI: " . PHP_EOL;
+        echo "---------------------------------------" . PHP_EOL;
         // Output the response from the API
         echo $response;
     }
 } 
 
 ?>
-
